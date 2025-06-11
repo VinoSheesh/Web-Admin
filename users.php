@@ -99,8 +99,8 @@ if (isset($_GET['status'])) {
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
-                                        <tr>
-                                            <th>ID</th>
+                                        <tr> 
+                                            <th>No</th>
                                             <th>Username</th>
                                             <th>Nama Lengkap</th>
                                             <th>Role</th>
@@ -111,12 +111,12 @@ if (isset($_GET['status'])) {
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $no = 1;
+                                        $no = 1; // Initialize counter
                                         if (!empty($data_users)) {
                                             foreach ($data_users as $user) {
                                                 ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($user['id'] ?? ''); ?></td>
+                                                    <td><?php echo $no++; ?></td>
                                                     <td><?php echo htmlspecialchars($user['username'] ?? ''); ?></td>
                                                     <td><?php echo htmlspecialchars($user['full_name'] ?? ''); ?></td>
                                                     <td><?php echo htmlspecialchars($user['role'] ?? ''); ?></td>
@@ -124,24 +124,24 @@ if (isset($_GET['status'])) {
                                                     <td>******</td>
                                                     <td>
                                                         <a href="#" class="btn btn-warning btn-sm edit-user-btn"
-                                                            data-toggle="modal" data-target="#editUserModal"
+                                                            data-toggle="modal" 
+                                                            data-target="#editUserModal"
                                                             data-id="<?php echo htmlspecialchars($user['id'] ?? ''); ?>"
                                                             data-username="<?php echo htmlspecialchars($user['username'] ?? ''); ?>"
                                                             data-full_name="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>"
                                                             data-role="<?php echo htmlspecialchars($user['role'] ?? ''); ?>">
-                                                            Edit
+                                                            <i class="fas fa-edit"></i> Edit
                                                         </a>
                                                         <a href="hapus_user_proses.php?id=<?php echo htmlspecialchars($user['id'] ?? ''); ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Yakin ingin menghapus pengguna <?php echo htmlspecialchars($user['full_name'] ?? ''); ?> (<?php echo htmlspecialchars($user['username'] ?? ''); ?>)?');">
-                                                            Hapus
+                                                            class="btn btn-danger btn-sm delete-user"
+                                                            data-username="<?php echo htmlspecialchars($user['username'] ?? ''); ?>"
+                                                            data-fullname="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>">
+                                                            <i class="fas fa-trash"></i> Hapus
                                                         </a>
                                                     </td>
                                                 </tr>
                                                 <?php
                                             }
-                                        } else {
-                                            echo "<tr><td colspan='8' class='text-center'>Tidak ada data pengguna.</td></tr>";
                                         }
                                         ?>
                                     </tbody>
@@ -325,6 +325,92 @@ if (isset($_GET['status'])) {
                     modal.find('#edit_role').val(role);
                 });
             });</script>
+
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+        $(document).ready(function() {
+            // Handle tambah user form submit
+            $('#tambahUserModal form').on('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Tambah',
+                    text: 'Yakin ingin menambah pengguna baru?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Tambah!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+
+            // Handle edit user form submit
+            $('#editUserModal form').on('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Perubahan',
+                    text: 'Yakin ingin menyimpan perubahan data pengguna?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Simpan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+
+            // Handle delete user
+            $('.delete-user').on('click', function(e) {
+                e.preventDefault();
+                const href = $(this).attr('href');
+                const username = $(this).data('username');
+                const fullname = $(this).data('fullname');
+
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: `Yakin ingin menghapus pengguna ${fullname} (${username})?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = href;
+                    }
+                });
+            });
+
+            // Display SweetAlert for success/error messages from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const pesan = urlParams.get('pesan');
+
+            if (status && pesan) {
+                let icon = status === 'success' ? 'success' : 'error';
+                Swal.fire({
+                    icon: icon,
+                    title: status === 'success' ? 'Berhasil!' : 'Gagal!',
+                    text: decodeURIComponent(pesan),
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                
+                // Remove parameters from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+        </script>
 </body>
 
 </html>

@@ -132,8 +132,8 @@ if (!isset($_SESSION['user_id'])) {
                                                                 Edit
                                                             </a>
                                                             <a href="hapus_agama_proses.php?id_agama=<?php echo htmlspecialchars($agama['id_agama'] ?? ''); ?>"
-                                                                class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Yakin ingin menghapus agama <?php echo htmlspecialchars($agama['nama_agama'] ?? ''); ?>? Perhatian: Ini mungkin akan mempengaruhi data siswa yang terkait!');">
+                                                               class="btn btn-danger btn-sm delete-agama"
+                                                               data-nama-agama="<?php echo htmlspecialchars($agama['nama_agama'] ?? ''); ?>">
                                                                 Hapus
                                                             </a>
                                                         <?php else: ?>
@@ -270,6 +270,95 @@ if (!isset($_SESSION['user_id'])) {
 
     <!-- PERBAIKAN: Include script khusus untuk jurusan -->
     <script src="js/demo/datatables-agama-demo.js"></script>
-</body>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Handling form submit untuk tambah agama
+        document.querySelector('#tambahAgamaModal form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi Tambah',
+                text: 'Yakin ingin menambah data agama ini?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Tambah',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+
+        // Handling form submit untuk edit agama
+        document.querySelector('#editAgamaModal form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi Perubahan',
+                text: 'Yakin ingin menyimpan perubahan data agama ini?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+
+        // Ganti confirm standar dengan SweetAlert untuk hapus
+        const deleteLinks = document.querySelectorAll('a[href^="hapus_agama_proses.php"]');
+        deleteLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const agamaName = this.getAttribute('data-nama-agama');
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: `Yakin ingin menghapus agama ${agamaName}? Perhatian: Ini mungkin akan mempengaruhi data siswa yang terkait!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        });
+
+        // Tampilkan SweetAlert untuk pesan sukses/error dari URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const pesan = urlParams.get('pesan');
+
+            if (status && pesan) {
+                let icon = 'success';
+                if (status === 'error') {
+                    icon = 'error';
+                }
+                
+                Swal.fire({
+                    icon: icon,
+                    title: status === 'success' ? 'Berhasil!' : 'Gagal!',
+                    text: decodeURIComponent(pesan),
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                // Hapus parameter dari URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+
+
+
+</html></body></body>
 
 </html>

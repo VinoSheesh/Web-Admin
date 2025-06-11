@@ -136,9 +136,9 @@ if (!isset($_SESSION['user_id'])) {
                                                                 Edit
                                                             </a>
                                                             <a href="hapus_jurusan_proses.php?kode_jurusan=<?php echo htmlspecialchars($jurusan['kode_jurusan'] ?? ''); ?>"
-                                                                class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Yakin ingin menghapus jurusan <?php echo htmlspecialchars($jurusan['nama_jurusan'] ?? ''); ?>?');">
-                                                                Hapus
+                                                                class="btn btn-danger btn-sm delete-jurusan"
+                                                                data-nama-jurusan="<?php echo htmlspecialchars($jurusan['nama_jurusan'] ?? ''); ?>">
+                                                                <i class="fas fa-trash"></i> Hapus
                                                             </a>
                                                         <?php else: ?>
                                                             <span>-</span>
@@ -287,9 +287,10 @@ if (!isset($_SESSION['user_id'])) {
     <script src="vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
-    <!-- PERBAIKAN: Include script khusus untuk jurusan -->
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#dataTable').DataTable({
                 "scrollX": true
             });
@@ -310,6 +311,85 @@ if (!isset($_SESSION['user_id'])) {
                 console.log('Kode Jurusan dari tombol:', kode_jurusan);
                 console.log('Nilai input hidden setelah diisi:', modal.find('#edit_kode_jurusan_hidden').val());
             });
+
+            // Handle form tambah jurusan
+            $('#tambahJurusanModal form').on('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Tambah',
+                    text: 'Yakin ingin menambah jurusan baru?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Tambah!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+
+            // Handle form edit jurusan
+            $('#editJurusanModal form').on('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Perubahan',
+                    text: 'Yakin ingin menyimpan perubahan?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Simpan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+
+            // Hapus handler onclick yang lama
+            $('.delete-jurusan').off('click').on('click', function(e) {
+                e.preventDefault();
+                const href = $(this).attr('href');
+                const namaJurusan = $(this).data('nama-jurusan');
+
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: `Yakin ingin menghapus jurusan ${namaJurusan}? Data yang terkait dengan jurusan ini juga akan terpengaruh.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = href;
+                    }
+                });
+            });
+
+            // Tampilkan SweetAlert untuk pesan sukses/error dari URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const pesan = urlParams.get('pesan');
+
+            if (status && pesan) {
+                let icon = status === 'success' ? 'success' : 'error';
+                Swal.fire({
+                    icon: icon,
+                    title: status === 'success' ? 'Berhasil!' : 'Gagal!',
+                    text: decodeURIComponent(pesan),
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                
+                // Hapus parameter dari URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
     </script>
 </body>

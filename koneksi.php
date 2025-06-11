@@ -348,45 +348,42 @@ function get_user_data_by_id($user_id) {
         return true;
     }
 
-    public function get_siswa_by_nisn($nisn)
-    {
+    public function get_siswa_by_nisn($nisn) {
+        error_log("Mencari siswa dengan NISN: " . $nisn); // Debug log
+        
         $query = "SELECT 
-                siswa.nisn,
-                siswa.nama,
-                siswa.jenis_kelamin,
-                siswa.kode_jurusan,
-                siswa.kelas,
-                siswa.alamat,
-                siswa.tanggal_lahir,
-                siswa.tahun_masuk,
-                siswa.id_agama,
-                siswa.no_hp,
-                siswa.status_siswa,
-                jurusan.nama_jurusan,
-                agama.nama_agama
-              FROM siswa
-              LEFT JOIN jurusan ON siswa.kode_jurusan = jurusan.kode_jurusan
-              LEFT JOIN agama ON siswa.id_agama = agama.id_agama
-              WHERE siswa.nisn = ?";
+            siswa.*,
+            jurusan.nama_jurusan,
+            agama.nama_agama
+          FROM siswa
+          LEFT JOIN jurusan ON siswa.kode_jurusan = jurusan.kode_jurusan
+          LEFT JOIN agama ON siswa.id_agama = agama.id_agama
+          WHERE siswa.nisn = ?";
 
-        $stmt = $this->koneksi->prepare($query);
-        if ($stmt === false) {
-            error_log("Prepare failed get_siswa_by_nisn: " . $this->koneksi->error);
-            return false;
-        }
+    $stmt = $this->koneksi->prepare($query);
+    if ($stmt === false) {
+        error_log("Prepare failed: " . $this->koneksi->error);
+        return false;
+    }
 
-        $stmt->bind_param("s", $nisn);
+    $stmt->bind_param("s", $nisn);
+    
+    if (!$stmt->execute()) {
+        error_log("Execute failed: " . $stmt->error);
+        return false;
+    }
 
-        if (!$stmt->execute()) {
-            error_log("Execute failed get_siswa_by_nisn: " . $stmt->error);
-            return false;
-        }
-
-        $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
-        $stmt->close();
-
-        return $data;
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
+    
+    if ($data) {
+        error_log("Data siswa ditemukan: " . print_r($data, true)); // Debug log
+    } else {
+        error_log("Data siswa tidak ditemukan untuk NISN: " . $nisn);
+    }
+    
+    $stmt->close();
+    return $data;
     }
 
     // FUNGSI EDIT SISWA - URUTAN PARAMETER SUDAH DIPERBAIKI
@@ -524,16 +521,37 @@ function get_user_data_by_id($user_id) {
     }
 
 
-    public function hapus_siswa($nisn)
-    {
-        $query = "DELETE FROM siswa WHERE nisn=?";
+    public function hapus_siswa($nisn) {
+        error_log("Executing delete query for NISN: " . $nisn);
+        
+        // Gunakan prepared statement
+        $query = "DELETE FROM siswa WHERE nisn = ?";
         $stmt = $this->koneksi->prepare($query);
-        $stmt->bind_param("s", $nisn);
-        if (!$stmt->execute()) {
-            echo "Error saat menghapus siswa: " . $stmt->error;
+        
+        if ($stmt === false) {
+            error_log("Prepare failed: " . $this->koneksi->error);
             return false;
         }
-        return true;
+        
+        // Bind parameter
+        $stmt->bind_param("s", $nisn);
+        
+        // Eksekusi query
+        $success = $stmt->execute();
+        
+        if (!$success) {
+            error_log("Execute failed: " . $stmt->error);
+            $stmt->close();
+            return false;
+        }
+        
+        // Cek affected rows
+        $affected = $stmt->affected_rows;
+        $stmt->close();
+        
+        error_log("Affected rows: " . $affected);
+        
+        return $affected > 0;
     }
 
     public function __destruct()

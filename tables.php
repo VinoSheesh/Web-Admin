@@ -145,23 +145,15 @@ if (!isset($_SESSION['user_id'])) {
                                                         <td><?php echo htmlspecialchars($siswa['status_siswa']); ?></td>
                                                         <td>
                                                             <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'administrator'): ?>
-                                                                <a href="#" class="btn btn-warning btn-sm edit-siswa-btn"
-                                                                    data-toggle="modal" data-target="#editSiswaModal"
-                                                                    data-nisn="<?php echo htmlspecialchars($siswa['NISN'] ?? ''); ?>"
-                                                                    data-nama="<?php echo htmlspecialchars($siswa['Nama'] ?? ''); ?>"
-                                                                    data-jenis_kelamin="<?php echo htmlspecialchars($siswa['Jenis_Kelamin'] ?? ''); ?>"
-                                                                    data-kode_jurusan="<?php echo htmlspecialchars($siswa['Kode_Jurusan'] ?? ''); ?>"
-                                                                    data-id_kelas="<?php echo htmlspecialchars($siswa['ID_Kelas'] ?? ''); ?>"
-                                                                    data-alamat="<?php echo htmlspecialchars($siswa['Alamat'] ?? ''); ?>"
-                                                                    data-tanggal_lahir="<?php echo htmlspecialchars($siswa['Tanggal_Lahir'] ?? ''); ?>"
-                                                                    data-tahun_masuk="<?php echo htmlspecialchars($siswa['Tahun_Masuk'] ?? ''); ?>"
-                                                                    data-id_agama="<?php echo htmlspecialchars($siswa['ID_Agama'] ?? ''); ?>">
-                                                                    Edit
+                                                                <a href="#" class="btn btn-warning btn-sm edit-siswa-btn" 
+                                                                   data-toggle="modal" 
+                                                                   data-target="#editSiswaModal" 
+                                                                   data-nisn="<?php echo $siswa['nisn']; ?>">
+                                                                    <i class="fas fa-edit"></i> Edit
                                                                 </a>
-                                                                <a href="hapus_siswa_proses.php?nisn=<?php echo htmlspecialchars($siswa['NISN'] ?? ''); ?>"
-                                                                    class="btn btn-danger btn-sm"
-                                                                    onclick="return confirm('Yakin ingin menghapus siswa <?php echo htmlspecialchars($siswa['Nama'] ?? ''); ?>?');">
-                                                                    Hapus
+                                                                <a href="#" class="btn btn-danger btn-sm"
+                                                                   onclick="confirmDelete('<?php echo htmlspecialchars($siswa['nisn']); ?>', '<?php echo htmlspecialchars($siswa['nama']); ?>')">
+                                                                    <i class="fas fa-trash"></i> Hapus
                                                                 </a>
                                                             <?php else: ?>
                                                                 <span>-</span>
@@ -326,13 +318,11 @@ if (!isset($_SESSION['user_id'])) {
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <div class="form-group">
-                                                                    <label for="edit_nisn">NISN</label>
+                                                                    <label for="nisn">NISN</label>
                                                                 <input type="text" class="form-control" id="nisn"
-                                                                    name="nisn" required pattern="[0-9]{5}"
-                                                                    maxlength="5" onchange="checkNISN(this)"
-                                                                    title="NISN harus 5 digit angka" readonly>
-                                                                <small class="form-text text-muted">NISN tidak bisa
-                                                                    diubah.</small>
+                                                                    name="nisn" readonly>
+                                                                <small class="form-text text-muted">NISN tidak dapat
+                                                                    diubah</small>
                                                             </div>
                                                             <div class="form-group">
                                                                 <label for="edit_nama">Nama</label>
@@ -619,6 +609,71 @@ if (!isset($_SESSION['user_id'])) {
             });
         });
     </script>
+    <script>
+$(document).ready(function() {
+    $('.edit-siswa-btn').on('click', function() {
+        var nisn = $(this).data('nisn');
+        console.log('NISN yang akan diedit:', nisn); // Debug log
+        
+        // Reset form dan pesan error sebelumnya
+        $('#editSiswaModal form')[0].reset();
+        
+        // Ambil data siswa dengan AJAX
+        $.ajax({
+            url: 'get_siswa.php',
+            type: 'GET',
+            data: { nisn: nisn },
+            dataType: 'json',
+            success: function(data) {
+                console.log('Data yang diterima:', data); // Debug log
+                
+                // Isi form dengan data yang diterima
+                $('#editSiswaModal #nisn').val(data.nisn);
+                $('#editSiswaModal #edit_nama').val(data.nama);
+                $('#editSiswaModal #edit_jenis_kelamin').val(data.jenis_kelamin);
+                $('#editSiswaModal #edit_kode_jurusan').val(data.kode_jurusan);
+                $('#editSiswaModal #edit_kelas').val(data.kelas);
+                $('#editSiswaModal #edit_alamat').val(data.alamat);
+                $('#editSiswaModal #edit_tanggal_lahir').val(data.tanggal_lahir);
+                $('#editSiswaModal #edit_tahun_masuk').val(data.tahun_masuk);
+                $('#editSiswaModal #edit_id_agama').val(data.id_agama);
+                $('#editSiswaModal #edit_no_hp').val(data.no_hp);
+                $('#editSiswaModal #edit_status_siswa').val(data.status_siswa);
+                
+                // Tampilkan modal
+                $('#editSiswaModal').modal('show');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Gagal mengambil data siswa'
+                });
+            }
+        });
+    });
+});
+</script>
+<script>
+function confirmDelete(nisn, nama) {
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: `Yakin ingin menghapus data siswa ${nama}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `hapus_siswa_proses.php?nisn=${nisn}`;
+        }
+    });
+    return false;
+}
+</script>
 </body>
 
 </html>
