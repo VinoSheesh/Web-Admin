@@ -5,7 +5,7 @@
         <div class="sidebar-brand-icon">
             <img src="img/image.png" alt="" class="img-fluid" style="width: 30px;">
         </div>
-        <div class="sidebar-brand-text mx-2">SIDESI SMKN 6</div>
+        <div class="sidebar-brand-text mx-2">SIDISI SMKN 6</div>
     </a>
 
     <!-- Divider -->

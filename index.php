@@ -139,7 +139,8 @@ if (!isset($_SESSION['user_id'])) {
                                                 </div>
                                             </div>
                                             <div class="col-auto">
-                                                <i class="fas fa-mosque fa-2x text-gray-300"></i>
+                                                <i class="fa-solid fa-hands-praying fa-2x text-gray-300"></i>
+                                            
                                             </div>
                                         </div>
                                     </div>
